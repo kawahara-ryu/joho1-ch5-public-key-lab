@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>（5章体験型）公開鍵暗号とデジタル署名 〜南京錠カフェと怪盗シャドウの密書実験〜</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Zen+Maru+Gothic:wght@700;900&family=JetBrains+Mono:wght@600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=crypto_cyber_2.0">
+</head>
+<body>
+
+  <!-- 背景デコレーション -->
+  <div class="bg-pattern" aria-hidden="true"></div>
+  <!-- 紙吹雪レイヤー -->
+  <div id="confetti-layer" class="confetti-layer" aria-hidden="true"></div>
+
+  <div class="app-shell">
+
+    <!-- ==================== 1. タイトル画面 ==================== -->
+    <section id="screen-title" class="screen active">
+      <div class="title-card">
+        <div class="title-top-row">
+          <div class="title-badge">高校情報I・第5章「暗号化・デジタル署名・CIA」体験ラボ</div>
+          <button id="btn-title-bgm" class="btn-bgm-pill" type="button" onclick="toggleBgm()">🔇 BGM: OFF</button>
+        </div>
+
+        <h1 class="main-title">
+          <span class="u-title-chunk">🔓 公開鍵暗号と</span><span class="u-title-chunk">デジタル署名 💮</span>
+          <span class="sub-title">
+            <span class="u-title-chunk">〜南京錠カフェと</span><span class="u-title-chunk">怪盗シャドウの</span><span class="u-title-chunk">密書実験〜</span>
+          </span>
+        </h1>
+
+        <div class="hero-stage">
+          <!-- 左キャラ：ミルキィ店長 -->
+          <div class="hero-char-box cafe-side">
+            <div class="char-tag tag-cafe">🔓 南京錠カフェ・ミルキィ店長</div>
+            <img src="cafe_cat.png" alt="ミルキィ店長" class="char-illust">
+            <p class="char-quote">「開いた南京錠（公開鍵）は配ってOK！<br>秘密鍵とハンコは金庫に隠すニャ！」</p>
+          </div>
+
+          <!-- 中央VSパネル -->
+          <div class="hero-vs-center">
+            <div class="vs-emblem">VS</div>
+            <div class="key-legend-mini">
+              <div class="legend-chip chip-common">🔑 共通鍵：閉める＝開ける</div>
+              <div class="legend-chip chip-public">🔓 公開鍵：誰でもロック・検証OK</div>
+              <div class="legend-chip chip-private">🗝️ 秘密鍵：本人だけ開封・署名OK</div>
+              <div class="legend-chip chip-cert">📜 電子証明書：認証局(CA)が保証</div>
+            </div>
+          </div>
+
+          <!-- 右キャラ：怪盗シャドウ -->
+          <div class="hero-char-box thief-side">
+            <div class="char-tag tag-thief">🎩 通信街の盗聴魔・怪盗シャドウ</div>
+            <img src="thief_cat.png" alt="怪盗シャドウ" class="char-illust">
+            <p class="char-quote">「ネットを通る合鍵コピーも、偽の注文書も、偽南京錠のすり替えも全部仕掛けるニャ！」</p>
+          </div>
+        </div>
+
+        <div class="mission-grid">
+          <div class="mission-step-card">
+            <span class="m-badge">STEP 1</span>
+            <strong>🔑 共通鍵暗号</strong>
+            <span class="m-sub">鍵配送問題と鍵の爆発</span>
+          </div>
+          <div class="mission-step-card">
+            <span class="m-badge">STEP 2</span>
+            <strong>🔓 公開鍵暗号</strong>
+            <span class="m-sub">4つの鍵セレクト＆南京錠</span>
+          </div>
+          <div class="mission-step-card">
+            <span class="m-badge">STEP 3</span>
+            <strong>💮 デジタル署名</strong>
+            <span class="m-sub">ハッシュミキサー＆二重ロック</span>
+          </div>
+          <div class="mission-step-card">
+            <span class="m-badge">STEP 4</span>
+            <strong>📜 電子証明書(CA)</strong>
+            <span class="m-sub">🔒URLバー＆偽鍵を見破る</span>
+          </div>
+          <div class="mission-step-card">
+            <span class="m-badge">STEP 5</span>
+            <strong>🚀 ハイブリッド暗号</strong>
+            <span class="m-sub">安全×超高速のHTTPS</span>
+          </div>
+        </div>
+
+        <div class="title-actions">
+          <button id="btn-start-game" class="btn-primary btn-xl pulse-guide" type="button" onclick="startGame()">
+            🔓 暗号通信ラボを起動する！（実験スタート）
+          </button>
+          <button id="btn-open-manual-title" class="btn-secondary" type="button" onclick="openReviewModal()">
+            📖 1分図解マニュアル
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 2. メイン実験画面 ==================== -->
+    <section id="screen-game" class="screen">
+      <!-- トップバー -->
+      <header class="top-bar">
+        <div class="brand-pill">
+          <span class="brand-icon">🔓</span>
+          <span class="brand-text">南京錠カフェ・暗号ラボ</span>
+        </div>
+
+        <!-- クリックでいつでも移動できるSTEPピル -->
+        <nav class="step-nav" id="step-nav" aria-label="学習ステップ選択">
+          <button type="button" class="step-pill active" data-step="0" onclick="jumpToStep(0)">STEP 1 共通鍵</button>
+          <button type="button" class="step-pill" data-step="1" onclick="jumpToStep(1)">STEP 2 公開鍵</button>
+          <button type="button" class="step-pill" data-step="2" onclick="jumpToStep(2)">STEP 3 署名</button>
+          <button type="button" class="step-pill" data-step="3" onclick="jumpToStep(3)">STEP 4 証明書</button>
+          <button type="button" class="step-pill" data-step="4" onclick="jumpToStep(4)">STEP 5 HTTPS</button>
+        </nav>
+
+        <div class="top-stats">
+          <div class="stat-chip">🏆 <strong id="score-val">100</strong></div>
+          <div class="stat-chip stat-miss">💥 MISS: <strong id="miss-val">0</strong></div>
+          <button type="button" class="btn-mini" onclick="openReviewModal()">📖 図解</button>
+          <button type="button" id="btn-game-bgm" class="btn-mini" onclick="toggleBgm()">🔇 BGM: OFF</button>
+          <button type="button" class="btn-mini" onclick="backToTitle()">🏠 タイトル</button>
+        </div>
+      </header>
+
+      <!-- メイン2カラムレイアウト -->
+      <div class="game-layout">
+        <!-- 左カラム：ナビゲーター＆重要ポイント -->
+        <aside class="left-panel">
+          <!-- SNSチャット風キャラクターガイド -->
+          <div class="card guide-card" id="guide-card" data-emotion="normal">
+            <div class="guide-header">
+              <div class="avatar-wrap" id="avatar-wrap">
+                <img id="guide-avatar" src="cafe_cat.png" alt="ナビゲーター" class="speaker-avatar">
+              </div>
+              <div class="speaker-meta">
+                <span class="speaker-role" id="speaker-role">🔓 ミルキィ店長</span>
+                <span class="emotion-badge" id="emotion-badge">💡 実験ナビ</span>
+              </div>
+            </div>
+
+            <div class="chat-bubble" id="guide-msg">
+              読み込み中ニャ…
+            </div>
+
+            <!-- 折りたたみヒント -->
+            <details class="hint-accordion" id="hint-accordion">
+              <summary>💡 ヒントを見る</summary>
+              <div class="hint-body" id="hint-text">
+                ヒントがここに表示されます。
+              </div>
+            </details>
+          </div>
+
+          <!-- ここがテストに出る！重要整理カード（CIAバッジ対応） -->
+          <div class="card keypoint-card">
+            <div class="card-title-row">
+              <span class="card-badge">📌 テスト要点＆CIA</span>
+              <span class="step-tag-mini" id="keypoint-step-tag">STEP 1</span>
+            </div>
+            <h3 class="keypoint-heading" id="keypoint-title">共通鍵暗号の要点</h3>
+            <div class="keypoint-body" id="keypoint-body">
+              <!-- JSで動的描画 -->
+            </div>
+          </div>
+
+          <!-- 暗号化 vs デジタル署名 鍵の向き常時対比チートシート -->
+          <div class="card direction-cheat-card">
+            <div class="card-title-row">
+              <span class="card-badge">🧭 鍵の向きコンパス</span>
+            </div>
+            <div class="compass-row compass-enc" id="compass-enc">
+              <div class="compass-label">🔒 暗号化 <span class="cia-tag cia-c">🛡️機密性(C)</span></div>
+              <div class="compass-flow">
+                <span class="k-pill k-pub">🔓 <strong>受信者</strong>の公開鍵</span>
+                <span class="k-arrow">➔</span>
+                <span class="k-pill k-priv">🗝️ <strong>受信者</strong>の秘密鍵</span>
+              </div>
+            </div>
+            <div class="compass-row compass-sig" id="compass-sig">
+              <div class="compass-label">💮 署名 <span class="cia-tag cia-i">💮完全性(I)・真正性</span></div>
+              <div class="compass-flow">
+                <span class="k-pill k-priv">💮 <strong>送信者</strong>の秘密鍵</span>
+                <span class="k-arrow">➔</span>
+                <span class="k-pill k-pub">🔍 <strong>送信者</strong>の公開鍵</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- 右カラム：3ゾーン暗号通信ストリート＆実験コンソール -->
+        <main class="right-panel">
+          <!-- ステップミッションバナー -->
+          <div class="mission-banner">
+            <div class="mission-banner-left">
+              <span class="banner-step-badge" id="banner-step-badge">STEP 1 / 5</span>
+              <h2 class="banner-title" id="banner-title">共通鍵暗号方式と「鍵配送問題」</h2>
+            </div>
+            <div class="mission-goal-pill" id="banner-goal">
+              🎯 合鍵をネットで送るとどうなる？
+            </div>
+          </div>
+
+          <!-- スマホブラウザURLバー実演（STEP 4・5で表示） -->
+          <div id="browser-bar-wrap" class="browser-bar-wrap" style="display: none;">
+            <!-- JSで動的描画 -->
+          </div>
+
+          <!-- 3ゾーン暗号通信ストリート -->
+          <div class="crypto-street" id="crypto-street">
+            <!-- 左ゾーン：送信者 -->
+            <div class="street-zone zone-sender" id="zone-sender">
+              <div class="zone-header">
+                <span class="zone-role-badge role-sender" id="sender-role-badge">📤 送信側</span>
+                <strong class="zone-name" id="sender-name">パティシエ・チョコ</strong>
+              </div>
+              <div class="zone-desk" id="sender-desk">
+                <div class="data-box-card" id="sender-box">
+                  <div class="fx-burst" id="sender-fx"></div>
+                  <div class="box-icon" id="sender-box-icon">📄</div>
+                  <div class="box-info">
+                    <div class="box-state-tag" id="sender-box-tag">平文（むき出し）</div>
+                    <div class="box-content-text" id="sender-box-text">極秘レシピ（塩キャラメル）</div>
+                  </div>
+                </div>
+                <div class="keyring-section">
+                  <div class="keyring-title">🔐 手元の鍵</div>
+                  <div class="keyring-list" id="sender-keys"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 中央ゾーン：公衆ネットワーク（怪盗シャドウの盗聴ストリート） -->
+            <div class="street-zone zone-network" id="zone-network">
+              <div class="zone-header network-header">
+                <span class="zone-role-badge role-network">🌐 インターネット（怪盗の盗聴エリア）</span>
+              </div>
+
+              <!-- 通信ケーブル＆移動パケット表示 -->
+              <div class="wire-stage" id="wire-stage">
+                <div class="wire-line"></div>
+                <div class="wire-direction-label" id="wire-label">下のボタンで通信実験しよう</div>
+                <div class="wire-packet" id="wire-packet">
+                  <span class="packet-emoji" id="packet-emoji">📦</span>
+                  <span class="packet-caption" id="packet-caption">待機中</span>
+                </div>
+              </div>
+
+              <!-- 怪盗シャドウの監視アジト -->
+              <div class="thief-lair" id="thief-lair" data-thief-state="watching">
+                <div class="fx-burst" id="thief-fx"></div>
+                <div class="thief-avatar-col">
+                  <img src="thief_cat.png" alt="怪盗シャドウ" class="thief-mini-avatar">
+                  <span class="thief-status-badge" id="thief-status-badge">👀 監視中</span>
+                </div>
+                <div class="thief-info-col">
+                  <div class="thief-speech" id="thief-speech">
+                    「ネットを通る鍵も箱も全部監視中ニャ！」
+                  </div>
+                  <div class="thief-loot-bar">
+                    <span class="loot-label">🦹 奪った物:</span>
+                    <div class="loot-items" id="thief-loot">
+                      <span class="loot-empty">なし</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 右ゾーン：受信者 -->
+            <div class="street-zone zone-receiver" id="zone-receiver">
+              <div class="zone-header">
+                <span class="zone-role-badge role-receiver" id="receiver-role-badge">📥 受信側</span>
+                <strong class="zone-name" id="receiver-name">ミルキィ店長</strong>
+              </div>
+              <div class="zone-desk" id="receiver-desk">
+                <div class="data-box-card" id="receiver-box">
+                  <div class="fx-burst" id="receiver-fx"></div>
+                  <div class="box-icon" id="receiver-box-icon">📭</div>
+                  <div class="box-info">
+                    <div class="box-state-tag" id="receiver-box-tag">未受信</div>
+                    <div class="box-content-text" id="receiver-box-text">到着待ち</div>
+                  </div>
+                </div>
+                <div class="keyring-section">
+                  <div class="keyring-title">🔐 手元の鍵</div>
+                  <div class="keyring-list" id="receiver-keys"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ステップ別インタラクティブ実験パネル -->
+          <div class="control-workbench" id="control-workbench">
+            <!-- JSでSTEP1〜5の実験ボタン＆インタラクティブ装置を描画 -->
+          </div>
+        </main>
+      </div>
+    </section>
+
+    <!-- ==================== 3. オールクリア＆総まとめ画面 ==================== -->
+    <section id="screen-clear" class="screen">
+      <div class="clear-card">
+        <div class="clear-header-badge">🎉 CONGRATULATIONS! 全5ステップ完全制覇 🎉</div>
+        <h2 class="clear-title">
+          <span class="u-title-chunk">🔓 南京錠カフェの</span><span class="u-title-chunk">機密通信網が</span><span class="u-title-chunk">完成したニャ！ 💮</span>
+        </h2>
+
+        <div class="clear-score-banner">
+          <div class="score-box">
+            <span class="score-label">総合スコア</span>
+            <strong class="score-big" id="clear-score">100点</strong>
+          </div>
+          <div class="score-box">
+            <span class="score-label">認定ランク</span>
+            <strong class="rank-big" id="clear-rank">Sランク：王立暗号マイスター</strong>
+          </div>
+          <div class="score-box">
+            <span class="score-label">ワナ実験・ミス</span>
+            <strong class="miss-big" id="clear-miss">0回</strong>
+          </div>
+        </div>
+
+        <!-- Google Classroom 提出用あいことばボックス -->
+        <div class="keyword-box">
+          <div class="keyword-title">🎓 Google Classroom 提出用「あいことば」</div>
+          <div class="keyword-row">
+            <code id="classroom-keyword" class="keyword-code">南京錠は開けて配りハンコは金庫に隠すニャ</code>
+            <button type="button" id="btn-copy-keyword" class="btn-copy" onclick="copyKeyword()">📋 ワンクリックでコピー</button>
+          </div>
+          <div id="copy-feedback" class="copy-feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- テスト直前！5大暗号・認証技術 完全比較表（CIA対応） -->
+        <div class="summary-table-wrap">
+          <h3 class="summary-heading">📊 テスト直前！暗号＆認証技術・情報セキュリティ3要素(CIA)比較表</h3>
+          <table class="summary-table">
+            <thead>
+              <tr>
+                <th>方式・技術</th>
+                <th>守る要素（CIA）</th>
+                <th>送信側が使う鍵</th>
+                <th>受信側が使う鍵</th>
+                <th>特徴・ポイント</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>🔑 共通鍵暗号</strong></td>
+                <td><span class="cia-tag cia-c">🛡️ 機密性(C)</span><br>盗聴防止</td>
+                <td><span class="k-pill k-common">🔑 共通鍵</span>で暗号化</td>
+                <td>同じ<span class="k-pill k-common">🔑 共通鍵</span>で復号</td>
+                <td><strong>超高速🐇</strong>だが<strong>鍵配送問題</strong>と <code>n(n-1)÷2</code> 個の鍵管理が弱点</td>
+              </tr>
+              <tr>
+                <td><strong>🔓 公開鍵暗号</strong></td>
+                <td><span class="cia-tag cia-c">🛡️ 機密性(C)</span><br>盗聴防止</td>
+                <td><span class="k-pill k-pub">🔓 受信者の公開鍵</span>で暗号化</td>
+                <td><span class="k-pill k-priv">🗝️ 受信者の秘密鍵</span>で復号</td>
+                <td>秘密鍵を送らず安全だが、計算が複雑で<strong>遅い🐢</strong></td>
+              </tr>
+              <tr>
+                <td><strong>💮 デジタル署名</strong></td>
+                <td><span class="cia-tag cia-i">💮 完全性(I)</span><br><span class="cia-tag cia-a">👤 真正性</span></td>
+                <td><span class="k-pill k-priv">💮 送信者の秘密鍵</span>で署名</td>
+                <td><span class="k-pill k-pub">🔍 送信者の公開鍵</span>で検証</td>
+                <td>ハッシュ値照合で<strong>なりすまし防止＆1文字改ざん検知</strong></td>
+              </tr>
+              <tr>
+                <td><strong>📜 電子証明書(CA)</strong></td>
+                <td><span class="cia-tag cia-a">👤 真正性</span><br>中間者攻撃対策</td>
+                <td><span class="k-pill k-priv">👑 CAの秘密鍵</span>で公開鍵に署名</td>
+                <td><span class="k-pill k-pub">👑 CAの公開鍵</span>で証明書を検証</td>
+                <td>第三者機関の<strong>認証局(CA)</strong>が公開鍵の持ち主を保証</td>
+              </tr>
+              <tr>
+                <td><strong>🚀 ハイブリッド暗号 (HTTPS)</strong></td>
+                <td><span class="cia-tag cia-c">🛡️ 機密性(C)</span><br>＋超高速通信</td>
+                <td>①<span class="k-pill k-common">🔑 共通鍵</span>を<span class="k-pill k-pub">🔓 受信者の公開鍵</span>で送る<br>②本文は<span class="k-pill k-common">🔑 共通鍵</span>で暗号化</td>
+                <td>①<span class="k-pill k-priv">🗝️ 受信者の秘密鍵</span>で共通鍵を取出<br>②本文は<span class="k-pill k-common">🔑 共通鍵</span>で高速復号</td>
+                <td>公開鍵の安全性と共通鍵の速さを合体したWeb標準方式</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- いつでも復習・再挑戦ボタン群 -->
+        <div class="clear-replay-section">
+          <div class="replay-buttons">
+            <button type="button" class="btn-secondary" onclick="jumpToStepFromClear(0)">STEP 1 共通鍵</button>
+            <button type="button" class="btn-secondary" onclick="jumpToStepFromClear(1)">STEP 2 公開鍵</button>
+            <button type="button" class="btn-secondary" onclick="jumpToStepFromClear(2)">STEP 3 デジタル署名</button>
+            <button type="button" class="btn-secondary" onclick="jumpToStepFromClear(3)">STEP 4 電子証明書</button>
+            <button type="button" class="btn-secondary" onclick="jumpToStepFromClear(4)">STEP 5 ハイブリッド暗号</button>
+            <button type="button" class="btn-primary" onclick="backToTitle()">🏠 タイトルへ戻る</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ==================== 4. ステップ確認クイズモーダル ==================== -->
+  <div id="stage-overlay" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card quiz-modal-card">
+      <div class="quiz-badge" id="quiz-badge">📝 STEP 1 理解度チェック</div>
+      <h3 class="quiz-title" id="quiz-title">実験クリア！1問チェックニャ！</h3>
+      <p class="quiz-question" id="quiz-question">問題文がここに入ります</p>
+
+      <div class="quiz-options" id="quiz-options">
+        <!-- JSで4択ボタン生成 -->
+      </div>
+
+      <div class="quiz-feedback" id="quiz-feedback" style="display: none;">
+        <div class="feedback-header" id="feedback-header">⭕ 大正解ニャ！</div>
+        <p class="feedback-exp" id="feedback-exp">解説文</p>
+        <button type="button" id="btn-next-step" class="btn-primary pulse-guide" onclick="proceedAfterQuiz()">
+          次のステップへ進む ➔
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 5. 暗号＆署名 図解マニュアルモーダル ==================== -->
+  <div id="reviewModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card manual-modal-card">
+      <div class="manual-header">
+        <h3>📖 1分でわかる「暗号＆デジタル署名」図解シート</h3>
+        <button type="button" class="btn-close-modal" onclick="closeReviewModal()">✕ 閉じる</button>
+      </div>
+      <div class="manual-body">
+        <div class="manual-grid">
+          <div class="manual-item">
+            <h4>1️⃣ 共通鍵暗号方式 <span class="cia-tag cia-c">🛡️機密性(C)</span></h4>
+            <p>閉める鍵と開ける鍵が同じ。<strong>超高速🐇</strong>だけど、ネットで合鍵を送ると盗まれる<strong>「鍵配送問題」</strong>と、<code>n(n-1)÷2</code> 個の鍵が必要になる弱点があります。</p>
+          </div>
+          <div class="manual-item">
+            <h4>2️⃣ 公開鍵暗号方式 <span class="cia-tag cia-c">🛡️機密性(C)</span></h4>
+            <p><strong>🔓 受信者の公開鍵（開いた南京錠）</strong>でロックし、金庫の<strong>🗝️ 受信者の秘密鍵</strong>で開けます。一度閉まった南京錠は公開鍵では開けられません！</p>
+          </div>
+          <div class="manual-item">
+            <h4>3️⃣ デジタル署名 <span class="cia-tag cia-i">💮完全性(I)・真正性</span></h4>
+            <p>文書のハッシュ値を<strong>💮 送信者の秘密鍵</strong>で署名し、<strong>🔍 送信者の公開鍵</strong>で検証します。1文字でも改ざんされるとハッシュ値が変わって即バレます！</p>
+          </div>
+          <div class="manual-item">
+            <h4>4️⃣ 電子証明書(CA)＆ハイブリッド暗号</h4>
+            <p>公開鍵が本物か保証するのが<strong>認証局(CA)の📜 電子証明書</strong>。そして<strong>🔑 共通鍵を 🔓 公開鍵で包んで送る</strong>いいとこ取りが<strong>ハイブリッド暗号(HTTPS)</strong>です。</p>
+          </div>
+        </div>
+      </div>
+      <div class="manual-footer">
+        <button type="button" class="btn-primary" onclick="closeReviewModal()">実験ラボに戻る</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 特大二重丸・朱肉スタンプ演出 -->
+  <div id="hankostamp" class="hanko-stamp" aria-hidden="true">
+    <div class="hanko-inner">
+      <span class="hanko-top">機密承認</span>
+      <span class="hanko-main">大正解</span>
+      <span class="hanko-sub">南京錠カフェ</span>
+    </div>
+  </div>
+
+  <!-- フッター（厳守ルール：BGM: 魔王魂 のみ） -->
+  <footer class="app-footer">BGM: 魔王魂</footer>
+
+  <script src="main.js"></script>
+</body>
+</html>
